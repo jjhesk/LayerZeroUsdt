@@ -34,164 +34,20 @@ contract Context {
     }
 }
 
-//EIP-712
-contract ERC20 is Context, IERC20 {
-    /// @notice The EIP-712 typehash for the contract's domain
-    bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
-    /// @notice The EIP-712 typehash for the permit struct used by the contract
-    bytes32 public constant PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    /// @notice A record of states for signing / validating signatures
-    mapping(address => uint256) public nonces;
 
-    using SafeMath for uint;
-
-    mapping(address => uint) private _balances;
-
-    mapping(address => mapping(address => uint)) private _allowances;
-
-    uint private _totalSupply;
-
-    /**
-     * @notice Triggers an approval from owner to spends
-     * @param owner The address to approve from
-     * @param spender The address to be approved
-     * @param rawAmount The number of tokens that are approved (2^256-1 means infinite)
-     * @param deadline The time at which to expire the signature
-     * @param v The recovery byte of the signature
-     * @param r Half of the ECDSA signature pair
-     * @param s Half of the ECDSA signature pair
-     */
-    function permit(address owner, address spender, uint256 rawAmount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
-        /*uint96 amount;
-        if (rawAmount == uint256(- 1)) {
-            amount = uint96(- 1);
-        } else {
-            amount = safe96(rawAmount, "Ba::permit: amount exceeds 96 bits");
-        }*/
-        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainId(), address(this)));
-        bytes32 structHash = keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, rawAmount, nonces[owner]++, deadline));
-        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
-        address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "Ba::permit: invalid signature");
-        require(signatory == owner, "Ba::permit: unauthorized");
-        require(now <= deadline, "Ba::permit: signature expired");
-        allowances[owner][spender] = rawAmount;
-        emit Approval(owner, spender, rawAmount);
-    }
-
-    function totalSupply() public view returns (uint) {
-        return _totalSupply;
-    }
-
-    function balanceOf(address account) public view returns (uint) {
-        return _balances[account];
-    }
-
-    function transfer(address recipient, uint amount) public returns (bool) {
-        _transfer(_msgSender(), recipient, amount);
-        return true;
-    }
-
-    function allowance(address owner, address spender) public view returns (uint) {
-        return _allowances[owner][spender];
-    }
-
-    function approve(address spender, uint amount) public returns (bool) {
-        _approve(_msgSender(), spender, amount);
-        return true;
-    }
-
-    function transferFrom(address sender, address recipient, uint amount) public returns (bool) {
-        _transfer(sender, recipient, amount);
-        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
-        return true;
-    }
-
-    function increaseAllowance(address spender, uint addedValue) public returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].add(addedValue));
-        return true;
-    }
-
-    function decreaseAllowance(address spender, uint subtractedValue) public returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
-        return true;
-    }
-
-    function _transfer(address sender, address recipient, uint amount) internal {
-        require(sender != address(0), "ERC20: transfer from the zero address");
-        require(recipient != address(0), "ERC20: transfer to the zero address");
-        require(!isBlackListed[sender], "You are frozened");
-        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
-        _balances[recipient] = _balances[recipient].add(amount);
-        emit Transfer(sender, recipient, amount);
-    }
-
-    function _mint(address account, uint amount) internal {
-        require(account != address(0), "ERC20: mint to the zero address");
-        _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account].add(amount);
-        emit Transfer(address(0), account, amount);
-    }
-
-    function _burn(address account, uint amount) internal {
-        require(account != address(0), "ERC20: burn from the zero address");
-        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
-        _totalSupply = _totalSupply.sub(amount);
-        emit Transfer(account, address(0), amount);
-    }
-
-    function _approve(address owner, address spender, uint amount) internal {
-        require(owner != address(0), "ERC20: approve from the zero address");
-        require(spender != address(0), "ERC20: approve to the zero address");
-        _allowances[owner][spender] = amount;
-        emit Approval(owner, spender, amount);
-    }
-
-
-    mapping(address => bool) public isBlackListed;
-
-    /////// Getters to allow the same blacklist to be used also by other contracts (including upgraded Tether) ///////
-    function getBlackListStatus(address _maker) external view returns (bool) {
-        return isBlackListed[_maker];
-    }
-
-
-    function _addBlackList(address _evilUser) internal {
-        isBlackListed[_evilUser] = true;
-        emit AddedBlackList(_evilUser);
-    }
-
-    function _removeBlackList(address _clearedUser) internal {
-        isBlackListed[_clearedUser] = false;
-        emit RemovedBlackList(_clearedUser);
-    }
-
-    function _destroyBlackFunds(address _blackListedUser) internal {
-        require(isBlackListed[_blackListedUser], "ERC20: you are not blacklisted");
-        uint256 dirtyFunds = balanceOf(_blackListedUser);
-        _balances[_blackListedUser] = 0;
-        _totalSupply = _totalSupply.sub(dirtyFunds);
-        emit DestroyedBlackFunds(_blackListedUser, dirtyFunds);
-    }
-
-    event DestroyedBlackFunds(address _blackListedUser, uint _balance);
-
-    event AddedBlackList(address _user);
-
-    event RemovedBlackList(address _user);
-
-}
-
-contract ERC20Detailed is IERC20 {
+abstract contract ERC20Detailed is IERC20 {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
+    bytes internal _namebytes;
 
     constructor (string memory name, string memory symbol, uint8 decimals) public {
         _name = name;
         _symbol = symbol;
         _decimals = decimals;
+        _namebytes = bytes(name);
     }
+
     function name() public view returns (string memory) {
         return _name;
     }
@@ -203,6 +59,7 @@ contract ERC20Detailed is IERC20 {
     function decimals() public view returns (uint8) {
         return _decimals;
     }
+
 }
 
 library SafeMath {
@@ -313,6 +170,15 @@ interface ILayerZeroUserApplicationConfig {
     function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external;
 }
 
+interface ILayerZeroReceiver {
+    // @notice LayerZero endpoint will invoke this function to deliver the message on the destination
+    // @param _srcChainId - the source endpoint identifier
+    // @param _srcAddress - the source sending contract address from the source chain
+    // @param _nonce - the ordered message nonce
+    // @param _payload - the signed payload is the UA bytes has encoded to be sent
+    function lzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) external;
+}
+
 interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
     // @notice send a LayerZero message to the specified address at a LayerZero endpoint.
     // @param _dstChainId - the destination chain identifier
@@ -395,7 +261,128 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
     function getReceiveVersion(address _userApplication) external view returns (uint16);
 }
 
-contract LayerZeroUSDT is ERC20, ERC20Detailed {
+//EIP-712
+contract ERC20 is Context, IERC20 {
+
+    using SafeMath for uint;
+
+    /// @notice The EIP-712 typehash for the contract's domain
+    bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+    /// @notice The EIP-712 typehash for the permit struct used by the contract
+    bytes32 public constant PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+    /// @notice A record of states for signing / validating signatures
+    mapping(address => uint256) public nonces;
+
+    mapping(address => uint) private _balances;
+
+    mapping(address => mapping(address => uint)) internal _allowances;
+
+    uint private _totalSupply;
+
+    function totalSupply() public view override returns (uint) {
+        return _totalSupply;
+    }
+
+    function balanceOf(address account) public view override returns (uint) {
+        return _balances[account];
+    }
+
+    function transfer(address recipient, uint amount) public override returns (bool) {
+        _transfer(_msgSender(), recipient, amount);
+        return true;
+    }
+
+    function allowance(address owner, address spender) public view override returns (uint) {
+        return _allowances[owner][spender];
+    }
+
+    function approve(address spender, uint amount) public override returns (bool) {
+        _approve(_msgSender(), spender, amount);
+        return true;
+    }
+
+    function transferFrom(address sender, address recipient, uint amount) public override returns (bool) {
+        _transfer(sender, recipient, amount);
+        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
+        return true;
+    }
+
+    function increaseAllowance(address spender, uint addedValue) public returns (bool) {
+        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].add(addedValue));
+        return true;
+    }
+
+    function decreaseAllowance(address spender, uint subtractedValue) public returns (bool) {
+        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
+        return true;
+    }
+
+    function _transfer(address sender, address recipient, uint amount) internal {
+        require(sender != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+        require(!isBlackListed[sender], "You are frozened");
+        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
+        _balances[recipient] = _balances[recipient].add(amount);
+        emit Transfer(sender, recipient, amount);
+    }
+
+    function _mint(address account, uint amount) internal {
+        require(account != address(0), "ERC20: mint to the zero address");
+        _totalSupply = _totalSupply.add(amount);
+        _balances[account] = _balances[account].add(amount);
+        emit Transfer(address(0), account, amount);
+    }
+
+    function _burn(address account, uint amount) internal {
+        require(account != address(0), "ERC20: burn from the zero address");
+        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
+        _totalSupply = _totalSupply.sub(amount);
+        emit Transfer(account, address(0), amount);
+    }
+
+    function _approve(address owner, address spender, uint amount) internal {
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
+        _allowances[owner][spender] = amount;
+        emit Approval(owner, spender, amount);
+    }
+
+
+    mapping(address => bool) public isBlackListed;
+
+    /////// Getters to allow the same blacklist to be used also by other contracts (including upgraded Tether) ///////
+    function getBlackListStatus(address _maker) external view returns (bool) {
+        return isBlackListed[_maker];
+    }
+
+
+    function _addBlackList(address _evilUser) internal {
+        isBlackListed[_evilUser] = true;
+        emit AddedBlackList(_evilUser);
+    }
+
+    function _removeBlackList(address _clearedUser) internal {
+        isBlackListed[_clearedUser] = false;
+        emit RemovedBlackList(_clearedUser);
+    }
+
+    function _destroyBlackFunds(address _blackListedUser) internal {
+        require(isBlackListed[_blackListedUser], "ERC20: you are not blacklisted");
+        uint256 dirtyFunds = balanceOf(_blackListedUser);
+        _balances[_blackListedUser] = 0;
+        _totalSupply = _totalSupply.sub(dirtyFunds);
+        emit DestroyedBlackFunds(_blackListedUser, dirtyFunds);
+    }
+
+    event DestroyedBlackFunds(address _blackListedUser, uint _balance);
+
+    event AddedBlackList(address _user);
+
+    event RemovedBlackList(address _user);
+
+}
+
+contract LayerZeroUSDT is ERC20, ERC20Detailed, ILayerZeroReceiver {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint;
@@ -470,7 +457,8 @@ contract LayerZeroUSDT is ERC20, ERC20Detailed {
     // the owner must set remote contract addresses.
     // in lzReceive(), a require() ensures only messages
     // from known contracts can be received.
-    function setRemote(uint16 _chainId, bytes calldata _remoteAddress) external onlyOwner {
+    function setRemote(uint16 _chainId, bytes calldata _remoteAddress) external {
+        require(msg.sender == governance, "!governance");
         require(remotes[_chainId].length == 0, "The remote address has already been set for the chainId!");
         remotes[_chainId] = _remoteAddress;
     }
@@ -505,4 +493,34 @@ contract LayerZeroUSDT is ERC20, ERC20Detailed {
         require(msg.sender == governance, "!governance");
         _destroyBlackFunds(evil);
     }
+
+    /**
+       EIP-712 implementation
+     * @notice Triggers an approval from owner to spends
+     * @param owner The address to approve from
+     * @param spender The address to be approved
+     * @param rawAmount The number of tokens that are approved (2^256-1 means infinite)
+     * @param deadline The time at which to expire the signature
+     * @param v The recovery byte of the signature
+     * @param r Half of the ECDSA signature pair
+     * @param s Half of the ECDSA signature pair
+     */
+    function permit(address owner, address spender, uint256 rawAmount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+        /*uint96 amount;
+        if (rawAmount == uint256(- 1)) {
+            amount = uint96(- 1);
+        } else {
+            amount = safe96(rawAmount, "Ba::permit: amount exceeds 96 bits");
+        }*/
+        bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(_namebytes), getChainId(), address(this)));
+        bytes32 structHash = keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, rawAmount, nonces[owner]++, deadline));
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
+        address signatory = ecrecover(digest, v, r, s);
+        require(signatory != address(0), "Ba::permit: invalid signature");
+        require(signatory == owner, "Ba::permit: unauthorized");
+        require(now <= deadline, "Ba::permit: signature expired");
+        _allowances[owner][spender] = rawAmount;
+        emit Approval(owner, spender, rawAmount);
+    }
+
 }
