@@ -283,7 +283,7 @@ fixmessedupgit() {
 }
 
 gitpush() {
-  git pull 
+  git config pull.rebase true
   git add .
   git commit -m "Check Point 🍥 ${gitcheck}"
   git push origin
