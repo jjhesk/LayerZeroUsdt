@@ -256,6 +256,7 @@ fixmessedupgit() {
 }
 
 gitpush() {
+  git pull 
   git add .
   git commit -m "Check Point 🍥 ${gitcheck}"
   git push origin
