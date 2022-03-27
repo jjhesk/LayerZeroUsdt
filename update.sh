@@ -1,5 +1,5 @@
 #!/bin/sh
-. ./h
+. ./inc
 #tsc -b
 #GIT_LOC=https://gitlab.com/b95token/erc20TokenGen
 VERSION=$(cat version)

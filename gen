@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
-
-. ./h
+. ./inc
 mactools
-#LOCAL MACHINE ONLY
-#PRESENT REMOTE SETTINGS
 LOCAL=$(cat node.txt)
 TARGET_LOC=/root/contracts
 #LOCAL PATHS
@@ -15,5 +12,3 @@ build_abi_generation
 endline
 bash flatliner.sh
 #backup_deploy
-#rm -f /Users/hesdx/Documents/piplines/vue-blocklink/src/abi/ori20.ts
-#cp /Users/hesdx/Documents/b95/erc20/codec/gen_ts/ori20.ts /Users/hesdx/Documents/piplines/vue-blocklink/src/abi/ori20.ts
