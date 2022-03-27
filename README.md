@@ -1,4 +1,4 @@
-# layerzerousdt
+# LayerZeroUsdt
 support v0.6
 The first USDT contract on RSC
 The new version of USDT supports the follow features:
