@@ -4,7 +4,7 @@
 mactools
 #LOCAL MACHINE ONLY
 #PRESENT REMOTE SETTINGS
-LOCAL=$(cat node)
+LOCAL=$(cat node.txt)
 TARGET_LOC=/root/contracts
 #LOCAL PATHS
 CONTRACTS_LOCAL="$BUILDPATH/deploy_results"
