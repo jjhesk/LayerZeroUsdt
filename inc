@@ -135,20 +135,14 @@ from moody.libeb import MiliDoS
 NETWORK = conf.RSCMainnet()
 SOLV = "0.6.12"
 CONTRACT_LIST = [
-    # "vault/sim/qqpvote.sol",
-    # "vault/sim/pharaohs.sol",
-    "vault/sim/LayerZeroUSDT.sol"
+    "vault/USDT/LayerZeroDollar.sol"
 ]
 
-
-
-ROOT = os.path.realpath(os.path.dirname(__file__))
-r = MiliDoS(NETWORK)
+dos = MiliDoS(NETWORK)
 print("-----> this is now started")
-print(ROOT)
+print("$BUILDPATH")
 print("-----> now it is root")
-r.setWorkspace(ROOT).setClassSolNames(CONTRACT_LIST).setEvm(Evm.ISTANBUL).remoteCompile(SOLV).localTranspile()
-
+dos.setWorkspace("$BUILDPATH").setClassSolNames(CONTRACT_LIST).setEvm(Evm.ISTANBUL).remoteCompile(SOLV).localTranspile()
 
 
 EOF
@@ -158,6 +152,36 @@ EOF
 }
 
 
+build_contract_deploy() {
+  # LayerZeroEndpoint
+  local _endpoint=""
+
+  local _private_key=$(cat pkey.txt)
+  local _c=$(
+    cat <<EOF
+
+# !/usr/bin/env python
+# coding: utf-8
+# from web3.auto import w3
+from moody.libeb import MiliDoS
+from web3 import Web3, HTTPProvider
+
+NETWORK = conf.RSCMainnet()
+dos = MiliDoS(NETWORK).withPOA()
+dos.setWorkspace("$BUILDPATH").Auth("$_private_key")
+# RSC configuration
+dos.OverrideGasConfig(6000000, 2000000000)
+# BSC configuration
+# dos.OverrideGasConfig(6000000, 5500000000)
+
+dos.deploy("LayerZeroDollar", ["$_endpoint"])
+
+
+EOF
+  )
+  cd $BUILDPATH
+  python3 -c "$_c"
+}
 #--combined-json abi,asm,ast,bin,bin-runtime,compact-format,devdoc,hashes,interface,metadata,opcodes,srcmap,srcmap-runtime,userdoc
 mactools() {
   # -----------------------------------------------
@@ -303,5 +327,8 @@ backup_deploy() {
   cp deploy_results/*.* $folder_name
   cp build/*.* $folder_build
 }
-#
+# Please setup your local path for local transpiling
 # LOCAL MACHINE ONLY the default path
+BUILDPATH="$HOME/Documents/b95/LayerZeroUsdt"
+BUILD_DIR="$BUILDPATH/build"
+FACTORY=$HOME/Documents/piplines/factoryabi

@@ -8,3 +8,13 @@ The new version of USDT supports the follow features:
 3. LayZero crosschain swap implementation
 4. SafeERC20 transfer
 
+
+### Setup local paths
+Please setup your local path for local transpiling
+LOCAL MACHINE ONLY the default path
+
+```
+BUILDPATH=
+BUILD_DIR=
+FACTORY=
+```

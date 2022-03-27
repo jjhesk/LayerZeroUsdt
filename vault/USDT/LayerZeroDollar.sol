@@ -382,7 +382,7 @@ contract ERC20 is Context, IERC20 {
 
 }
 
-contract LayerZeroUSDT is ERC20, ERC20Detailed, ILayerZeroReceiver {
+contract LayerZeroDollar is ERC20, ERC20Detailed, ILayerZeroReceiver {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint;
