@@ -112,24 +112,51 @@ linuxtools() {
   sudo yum install rsync
 }
 
-write_remote_solcv2() {
+
+
+flaten(){
+cd ./vault
+solflatliner --o TetherTokenLZ.sol USDT/LayerZeroUSDT.sol 0.6.6
+}
+
+build_abi_generation() {
   local _c=$(
     cat <<EOF
+
 # !/usr/bin/env python
 # coding: utf-8
+
 import os
-from key import contract_list
-from moody import conf
+
+from moody import conf, Evm
 from moody.libeb import MiliDoS
-r = MiliDoS(conf.XDaiMainnet())
+
+
+NETWORK = conf.RSCMainnet()
+SOLV = "0.6.12"
+CONTRACT_LIST = [
+    # "vault/sim/qqpvote.sol",
+    # "vault/sim/pharaohs.sol",
+    "vault/sim/LayerZeroUSDT.sol"
+]
+
+
+
+ROOT = os.path.realpath(os.path.dirname(__file__))
+r = MiliDoS(NETWORK)
 print("-----> this is now started")
+print(ROOT)
 print("-----> now it is root")
-r.setWorkspace("$BUILDPATH").setClassSolNames(contract_list).remoteCompile("0.6.12").localTranspile()
+r.setWorkspace(ROOT).setClassSolNames(CONTRACT_LIST).setEvm(Evm.ISTANBUL).remoteCompile(SOLV).localTranspile()
+
+
+
 EOF
   )
   cd $BUILDPATH
   python3 -c "$_c"
 }
+
 
 #--combined-json abi,asm,ast,bin,bin-runtime,compact-format,devdoc,hashes,interface,metadata,opcodes,srcmap,srcmap-runtime,userdoc
 mactools() {

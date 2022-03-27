@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+. ./h
+mactools
+#LOCAL MACHINE ONLY
+#PRESENT REMOTE SETTINGS
+LOCAL=$(cat node)
+TARGET_LOC=/root/contracts
+#LOCAL PATHS
+CONTRACTS_LOCAL="$BUILDPATH/deploy_results"
+mkdir -p $CONTRACTS_LOCAL
+rsync -avzP --delete $BUILDPATH/vault root@$LOCAL:$TARGET_LOC
+#python3 gen_class.py
+build_abi_generation
+endline
+bash flatliner.sh
+#backup_deploy
+#rm -f /Users/hesdx/Documents/piplines/vue-blocklink/src/abi/ori20.ts
+#cp /Users/hesdx/Documents/b95/erc20/codec/gen_ts/ori20.ts /Users/hesdx/Documents/piplines/vue-blocklink/src/abi/ori20.ts
