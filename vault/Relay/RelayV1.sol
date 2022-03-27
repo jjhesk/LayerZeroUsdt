@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.0;
 
-pragma solidity ^0.7.6;
-
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "hardhat-deploy/solc_0.7/proxy/Proxied.sol";
-
-import "./interfaces/ILayerZeroRelayer.sol";
-import "./interfaces/ILayerZeroUltraLightNodeV1.sol";
+import "../vendor/v0.8/Ownable.sol";
+import "../vendor/v0.8/IERC20.sol";
+import "../vendor/v0.8/SafeERC20.sol";
+import "../vendor/v0.8/ReentrancyGuard.sol";
+import "../vendor/v0.8/SafeMath.sol";
+import "../vendor/v0.8/Initializable.sol";
+import "../vendor/v0.8/OwnableUpgradeable.sol";
+import "../vendor/v0.8/Proxied.sol";
+import "../vendor/v0.8/ReentrancyGuard.sol";
+import "../interfaces/ILayerZeroRelayer.sol";
+import "../interfaces/ILayerZeroUltraLightNodeV1.sol";
+//https://github.com/wighawag/hardhat-deploy
 
 contract Relayer is ILayerZeroRelayer, ReentrancyGuard, OwnableUpgradeable, Proxied {
     using SafeERC20 for IERC20;
