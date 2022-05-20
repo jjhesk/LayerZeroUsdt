@@ -41,11 +41,11 @@ contract WhitelistedRole is AccessControl, Ownable {
         return hasRole(whitelistinvestor, account) || isOwner();
     }
 
-    function addWhitelist(address account) public isGovernor {
+    function addWhitelist(address account) public onlyGovernor {
         _grantRole(whitelistinvestor, account);
     }
 
-    function removeWhitelist(address account) public isGovernor {
+    function removeWhitelist(address account) public onlyGovernor {
         _revokeRole(whitelistinvestor, account);
     }
     //role end
@@ -56,14 +56,6 @@ contract WhitelistedRole is AccessControl, Ownable {
         require(codeLength == 0, "humans only");
         require(tx.origin == _msgSender(), "humans only");
         _;
-    }
-
-    function isContract(address x) internal view returns (bool) {
-        uint256 size;
-        assembly {
-            size := extcodesize(x)
-        }
-        return size > 0;
     }
 
     uint8 internal paused = 0;

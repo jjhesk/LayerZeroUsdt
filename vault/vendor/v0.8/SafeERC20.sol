@@ -1,7 +1,7 @@
 pragma solidity ^0.8.0;
 
-import {Address} from "Address.sol";
-import {IERC20} from "IERC20.sol";
+import {Address} from "./Address.sol";
+import {IERC20} from "./IERC20.sol";
 /**
  * @title SafeERC20
  * @dev Wrappers around ERC20 operations that throw on failure (when the token

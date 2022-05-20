@@ -110,7 +110,7 @@ contract ChainlinkOracleClient is ILayerZeroOracle, ChainlinkClient, Ownable, Re
     // uint8 public constant WITHDRAW_TYPE_ORACLE_QUOTED_FEES = 1;
     // quoted fee refers to the fee in block relaying
     function withdrawOracleQuotedFee(uint amount) external onlyOwner {
-        uln.withdrawNative(1, address(this), address(this), amount);
+        uln.withdrawNative(1, address(this), payable(this), amount);
     }
 
     // set/update chainlink jobid data for oralces

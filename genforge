@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+. ./inc
+mactools
+#LOCAL MACHINE ONLY
+#TARGET_LOC=/root/contracts
+#LOCAL PATHS
+#mkdir -p $CONTRACTS_LOCAL
+#rsync -avzP --delete $BUILDPATH/vault root@$WORKER_SERVER:$TARGET_LOC
+####
+#python3 gen_class.py
+#endline
+#backup_deploy
+#bash flatliner
+forge build --contracts vault --out build --optimizer-runs 100000 --force
+continueonforge

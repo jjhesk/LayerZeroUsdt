@@ -151,30 +151,29 @@ EOF
   python3 -c "$_c"
 }
 
-
-build_contract_deploy() {
-  # LayerZeroEndpoint
-  local _endpoint=""
-
-  local _private_key=$(cat pkey.txt)
+build_gen_forge(){
   local _c=$(
     cat <<EOF
 
 # !/usr/bin/env python
 # coding: utf-8
-# from web3.auto import w3
+
 from moody.libeb import MiliDoS
-from web3 import Web3, HTTPProvider
+from moody import conf, Evm
 
 NETWORK = conf.RSCMainnet()
-dos = MiliDoS(NETWORK).withPOA()
-dos.setWorkspace("$BUILDPATH").Auth("$_private_key")
-# RSC configuration
-dos.OverrideGasConfig(6000000, 2000000000)
-# BSC configuration
-# dos.OverrideGasConfig(6000000, 5500000000)
+SOLV = "0.6.12"
+r = MiliDoS(NETWORK)
+CONTRACT_LIST = [
+   "vault/USDT/LayerZeroDollar.sol",
+]
 
-dos.deploy("LayerZeroDollar", ["$_endpoint"])
+print("-----> this is now started")
+print("$BUILDPATH")
+print("-----> now it is root")
+
+r.setWorkspace("$BUILDPATH").setClassSolNames(CONTRACT_LIST).useForge().localTranspile()
+
 
 
 EOF
@@ -326,6 +325,15 @@ backup_deploy() {
   fi
   cp deploy_results/*.* $folder_name
   cp build/*.* $folder_build
+}
+continueonforge(){
+  build_gen_forge
+  cp -R $FACTORY $BUILDPATH/factoryabi 2>/dev/null
+  sh localpile
+  rm localpile
+  rm -rf $BUILDPATH/factoryabi
+  echo "==> 🛃 local transpile process completed."
+  bash flatliner.sh
 }
 # Please setup your local path for local transpiling
 # LOCAL MACHINE ONLY the default path
